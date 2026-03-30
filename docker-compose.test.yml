@@ -8,6 +8,32 @@ services:
       dockerfile: Dockerfile
     image: payment_backend:test
 
+  app:
+    image: payment_backend:test
+    working_dir: /app
+    depends_on:
+      - db
+      - rabbitmq
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env.test
+    ports:
+      - "8000:8000"
+    command: bash -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+
+  consumer:
+    image: payment_backend:test
+    working_dir: /app
+    depends_on:
+      - db
+      - rabbitmq
+    volumes:
+      - ./backend:/app
+    env_file:
+      - .env.test
+    command: payment-consumer
+
   db:
     image: postgres:16-alpine
     env_file:
@@ -18,61 +44,11 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - postgres_test_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $$DB_USER"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+    restart: always
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  app:
-    image: payment_backend:test
-    working_dir: /app
-    volumes:
-      - ./backend:/app
-    env_file:
-      - .env.test
-    ports:
-      - "8000:8000"
-    command: bash -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
-    depends_on:
-      db:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-    healthcheck:
-      test:
-        [
-          "CMD", "python", "-c",
-          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/docs')",
-        ]
-      interval: 5s
-      timeout: 5s
-      retries: 12
-      start_period: 90s
-
-  consumer:
-    image: payment_backend:test
-    working_dir: /app
-    volumes:
-      - ./backend:/app
-    env_file:
-      - .env.test
-    command: payment-consumer
-    depends_on:
-      db:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
-      app:
-        condition: service_healthy
+    restart: always
 
 volumes:
   postgres_test_data:
