@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import Boolean, DateTime, Numeric, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import JSONB, UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -31,6 +31,11 @@ class OutboxRow(Base):
     __tablename__ = "outbox"
 
     id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
-    payment_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), nullable=False, index=True)
+    payment_id: Mapped[UUID] = mapped_column(
+        PGUUID(as_uuid=True),
+        ForeignKey("payments.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     payload: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
     published: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

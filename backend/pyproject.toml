@@ -4,6 +4,7 @@ version = "0.1.0"
 description = "Async payment processing service (FastAPI, PostgreSQL, RabbitMQ)"
 requires-python = ">=3.11"
 dependencies = [
+  "alembic>=1.13.0",
   "fastapi>=0.115.0",
   "pydantic>=2.0",
   "pydantic-settings>=2.0",
