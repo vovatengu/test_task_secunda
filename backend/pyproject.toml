@@ -22,6 +22,7 @@ dev = [
 
 [project.scripts]
 payment-consumer = "payments.consumer.cli:main"
+payment-outbox-relay = "payments.outbox_relay.cli:main"
 
 [build-system]
 requires = ["setuptools>=61"]
