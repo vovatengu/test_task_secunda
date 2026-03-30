@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.settings import get_settings
 from db.session import get_db
 from payments.domain.repositories import OutboxWriter
-from payments.infrastructure.outbox import NoOpOutboxWriter
+from payments.infrastructure.outbox_sqlalchemy import SqlAlchemyOutboxWriter
 from payments.infrastructure.persistence.payment_repository import SqlAlchemyPaymentRepository
 
 _api_key_scheme = APIKeyHeader(name="X-API-Key", auto_error=False)
@@ -56,6 +56,7 @@ async def get_payment_repository(
     return SqlAlchemyPaymentRepository(session)
 
 
-async def get_outbox_writer() -> OutboxWriter:
-    """Swap for a real outbox implementation when persistence + broker are wired."""
-    return NoOpOutboxWriter()
+async def get_outbox_writer(
+    session: Annotated[AsyncSession, Depends(get_db)],
+) -> OutboxWriter:
+    return SqlAlchemyOutboxWriter(session)

@@ -35,6 +35,13 @@ def bind_session_maker(maker: async_sessionmaker[AsyncSession]) -> None:
     _session_maker = maker
 
 
+def get_session_maker() -> async_sessionmaker[AsyncSession]:
+    if _session_maker is None:
+        msg = "Database session maker is not configured; call bind_session_maker() at startup"
+        raise RuntimeError(msg)
+    return _session_maker
+
+
 async def get_db() -> AsyncIterator[AsyncSession]:
     if _session_maker is None:
         msg = "Database session maker is not configured; call bind_session_maker() at startup"
