@@ -3,6 +3,7 @@ from __future__ import annotations
 from uuid import UUID
 
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from payments.domain.entities import Currency, Payment, PaymentStatus
@@ -52,6 +53,15 @@ class SqlAlchemyPaymentRepository:
             processed_at=payment.processed_at,
         )
         self._session.add(row)
+
+    async def try_insert_new_payment(self, payment: Payment) -> bool:
+        await self.add(payment)
+        try:
+            await self._session.flush()
+        except IntegrityError:
+            await self._session.rollback()
+            return False
+        return True
 
     async def update(self, payment: Payment) -> None:
         row = await self._session.get(PaymentRow, payment.id)

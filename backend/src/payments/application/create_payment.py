@@ -6,8 +6,19 @@ from decimal import Decimal
 from typing import Any
 from uuid import UUID
 
+from payments.application.exceptions import IdempotencyKeyConflictError
 from payments.domain.entities import Currency, Payment, PaymentStatus
 from payments.domain.repositories import OutboxWriter, PaymentRepository
+
+
+def _matches_idempotent_create(existing: Payment, data: CreatePaymentInput) -> bool:
+    return (
+        existing.amount == data.amount
+        and existing.currency == data.currency
+        and existing.description == data.description
+        and existing.metadata == data.metadata
+        and existing.webhook_url == data.webhook_url
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -34,6 +45,8 @@ async def create_payment(
 ) -> CreatePaymentResult:
     existing = await repo.get_by_idempotency_key(data.idempotency_key)
     if existing is not None:
+        if not _matches_idempotent_create(existing, data):
+            raise IdempotencyKeyConflictError
         created = existing.created_at or datetime.now(tz=UTC)
         return CreatePaymentResult(
             payment_id=existing.id,
@@ -51,7 +64,19 @@ async def create_payment(
         metadata=data.metadata,
         created_at=now,
     )
-    await repo.add(payment)
+    if not await repo.try_insert_new_payment(payment):
+        existing = await repo.get_by_idempotency_key(data.idempotency_key)
+        if existing is None:
+            msg = "idempotency unique violation but row not found"
+            raise RuntimeError(msg)
+        if not _matches_idempotent_create(existing, data):
+            raise IdempotencyKeyConflictError
+        created = existing.created_at or datetime.now(tz=UTC)
+        return CreatePaymentResult(
+            payment_id=existing.id,
+            status=existing.status,
+            created_at=created,
+        )
     await outbox.enqueue_payment_created(
         payment,
         {"type": "payment.created", "payment_id": str(payment.id)},

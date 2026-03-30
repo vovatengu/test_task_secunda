@@ -3,12 +3,18 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from core.constants import API_V1_PREFIX
-from payments.api.deps import get_outbox_writer, get_payment_repository, require_api_key
+from payments.api.deps import (
+    get_outbox_writer,
+    get_payment_repository,
+    require_api_key,
+    require_idempotency_key,
+)
 from payments.api.schemas import CreatePaymentRequest, PaymentCreatedResponse, PaymentDetailResponse
 from payments.application.create_payment import CreatePaymentInput, create_payment
+from payments.application.exceptions import IdempotencyKeyConflictError
 from payments.application.get_payment import get_payment
 from payments.domain.repositories import OutboxWriter
 from payments.infrastructure.persistence.payment_repository import SqlAlchemyPaymentRepository
@@ -24,22 +30,28 @@ router = APIRouter(prefix=f"{API_V1_PREFIX}/payments", tags=["payments"])
 async def create_payment_endpoint(
     _: Annotated[None, Depends(require_api_key)],
     body: CreatePaymentRequest,
-    idempotency_key: Annotated[str, Header(alias="Idempotency-Key")],
+    idempotency_key: Annotated[str, Depends(require_idempotency_key)],
     repo: Annotated[SqlAlchemyPaymentRepository, Depends(get_payment_repository)],
     outbox: Annotated[OutboxWriter, Depends(get_outbox_writer)],
 ) -> PaymentCreatedResponse:
-    result = await create_payment(
-        repo,
-        outbox,
-        CreatePaymentInput(
-            amount=body.amount,
-            currency=body.currency,
-            description=body.description,
-            metadata=body.metadata,
-            webhook_url=str(body.webhook_url) if body.webhook_url is not None else None,
-            idempotency_key=idempotency_key,
-        ),
-    )
+    try:
+        result = await create_payment(
+            repo,
+            outbox,
+            CreatePaymentInput(
+                amount=body.amount,
+                currency=body.currency,
+                description=body.description,
+                metadata=body.metadata,
+                webhook_url=str(body.webhook_url) if body.webhook_url is not None else None,
+                idempotency_key=idempotency_key,
+            ),
+        )
+    except IdempotencyKeyConflictError:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Idempotency-Key was already used with different parameters",
+        ) from None
     return PaymentCreatedResponse(
         payment_id=result.payment_id,
         status=result.status,
