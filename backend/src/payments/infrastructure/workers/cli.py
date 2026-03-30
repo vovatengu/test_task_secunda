@@ -7,7 +7,7 @@ import sys
 from core.logging import configure_logging
 from core.settings import get_settings
 from db.session import async_session_factory, bind_session_maker, create_async_engine_from_settings
-from payments.consumer.app import build_consumer_app
+from payments.infrastructure.workers.app import build_consumer_app
 
 
 async def _async_main() -> None:
