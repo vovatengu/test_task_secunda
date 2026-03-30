@@ -1,0 +1,30 @@
+# Virtualenv
+.venv/
+venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Local env (keep .env.example)
+.env
+.env.dev
+.env.test
+!.env.example
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+logs/*
+!logs/.gitkeep
+media/*
+!media/.gitkeep
