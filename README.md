@@ -174,7 +174,7 @@ flowchart LR
 
 ## Структура репозитория
 
-- `backend/` — приложение: `src/core/` (в т.ч. **infrastructure/messaging**), `src/payments/`, `alembic/`
+- `backend/` — приложение: `src/core/` (в т.ч. **infrastructure/messaging**), `src/db/`, `alembic/`; модуль **`src/payments/`** в духе Clean Architecture: `domain/` (**entities**, **interfaces**, **dtos**, **exceptions**), `application/use_cases/`, `presentation/` (**api**, **dependencies**), `infrastructure/`, `outbox_relay/`
 - `infra/` — заготовка под конфиги инфраструктуры
 - `Makefile`, `docker-compose.dev.yml`, `docker-compose.test.yml`, `.env.example`
 - `.env.example` — пример переменных для локальной разработки

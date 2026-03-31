@@ -7,7 +7,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, HttpUrl
 
-from payments.domain.entities import Currency, PaymentStatus
+from payments.domain.entities.payment import Currency, PaymentStatus
 
 
 class CreatePaymentRequest(BaseModel):

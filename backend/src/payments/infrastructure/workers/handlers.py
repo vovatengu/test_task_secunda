@@ -9,7 +9,7 @@ from core.infrastructure.messaging.topology import payments_events_exchange, pay
 from core.settings import Settings
 from faststream.middlewares import AckPolicy
 from faststream.rabbit.annotations import RabbitBroker, RabbitMessage
-from payments.application.process_payment_message import process_payment_message
+from payments.application.use_cases.process_payment_message import process_payment_message
 
 logger = logging.getLogger(__name__)
 

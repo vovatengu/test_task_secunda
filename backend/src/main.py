@@ -14,7 +14,7 @@ from db.session import (
     create_async_engine_from_settings,
     get_session_maker,
 )
-from payments.api.router import router as payments_router
+from payments.presentation.api.router import router as payments_router
 from payments.infrastructure.outbox_relay import run_outbox_relay
 
 logger = logging.getLogger(__name__)

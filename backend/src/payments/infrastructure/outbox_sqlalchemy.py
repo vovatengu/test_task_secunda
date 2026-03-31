@@ -5,8 +5,8 @@ from uuid import uuid4
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payments.domain.entities import Payment
-from payments.domain.repositories import OutboxWriter
+from payments.domain.entities.payment import Payment
+from payments.domain.interfaces.repositories import OutboxWriter
 from payments.infrastructure.persistence.models import OutboxRow
 
 

@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from decimal import Decimal
-from typing import Any
-from uuid import UUID
 
-from payments.application.exceptions import IdempotencyKeyConflictError
-from payments.domain.entities import Currency, Payment, PaymentStatus
-from payments.domain.repositories import OutboxWriter, PaymentRepository
+from payments.domain.dtos.create_payment import CreatePaymentInput, CreatePaymentResult
+from payments.domain.entities.payment import Payment
+from payments.domain.exceptions.idempotency import IdempotencyKeyConflictError
+from payments.domain.interfaces.repositories import OutboxWriter, PaymentRepository
 
 
 def _matches_idempotent_create(existing: Payment, data: CreatePaymentInput) -> bool:
@@ -19,23 +16,6 @@ def _matches_idempotent_create(existing: Payment, data: CreatePaymentInput) -> b
         and existing.metadata == data.metadata
         and existing.webhook_url == data.webhook_url
     )
-
-
-@dataclass(frozen=True, slots=True)
-class CreatePaymentInput:
-    amount: Decimal
-    currency: Currency
-    description: str | None
-    webhook_url: str | None
-    idempotency_key: str
-    metadata: dict[str, Any] = field(default_factory=dict)
-
-
-@dataclass(frozen=True, slots=True)
-class CreatePaymentResult:
-    payment_id: UUID
-    status: PaymentStatus
-    created_at: datetime
 
 
 async def create_payment(

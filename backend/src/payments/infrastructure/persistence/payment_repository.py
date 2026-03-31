@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from payments.domain.entities import Currency, Payment, PaymentStatus
+from payments.domain.entities.payment import Currency, Payment, PaymentStatus
 from payments.infrastructure.persistence.models import PaymentRow
 
 

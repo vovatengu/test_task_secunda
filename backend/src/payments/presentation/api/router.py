@@ -6,18 +6,23 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from core.constants import API_V1_PREFIX
-from payments.api.deps import (
+from payments.application.use_cases.create_payment import create_payment
+from payments.application.use_cases.get_payment import get_payment
+from payments.domain.dtos.create_payment import CreatePaymentInput
+from payments.domain.exceptions.idempotency import IdempotencyKeyConflictError
+from payments.domain.interfaces.repositories import OutboxWriter
+from payments.infrastructure.persistence.payment_repository import SqlAlchemyPaymentRepository
+from payments.presentation.api.schemas import (
+    CreatePaymentRequest,
+    PaymentCreatedResponse,
+    PaymentDetailResponse,
+)
+from payments.presentation.dependencies import (
     get_outbox_writer,
     get_payment_repository,
     require_api_key,
     require_idempotency_key,
 )
-from payments.api.schemas import CreatePaymentRequest, PaymentCreatedResponse, PaymentDetailResponse
-from payments.application.create_payment import CreatePaymentInput, create_payment
-from payments.application.exceptions import IdempotencyKeyConflictError
-from payments.application.get_payment import get_payment
-from payments.domain.repositories import OutboxWriter
-from payments.infrastructure.persistence.payment_repository import SqlAlchemyPaymentRepository
 
 router = APIRouter(prefix=f"{API_V1_PREFIX}/payments", tags=["payments"])
 

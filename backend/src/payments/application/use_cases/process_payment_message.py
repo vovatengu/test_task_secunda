@@ -8,7 +8,7 @@ from uuid import UUID
 
 from core.settings import Settings
 from db.session import get_session_maker
-from payments.domain.entities import PaymentStatus
+from payments.domain.entities.payment import PaymentStatus
 from payments.infrastructure.gateway_emulator import emulate_payment_gateway
 from payments.infrastructure.persistence.payment_repository import SqlAlchemyPaymentRepository
 from payments.infrastructure.webhook_client import post_webhook_with_retry

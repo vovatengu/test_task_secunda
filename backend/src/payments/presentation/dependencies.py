@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.settings import get_settings
 from db.session import get_db
-from payments.domain.repositories import OutboxWriter
+from payments.domain.interfaces.repositories import OutboxWriter
 from payments.infrastructure.outbox_sqlalchemy import SqlAlchemyOutboxWriter
 from payments.infrastructure.persistence.payment_repository import SqlAlchemyPaymentRepository
 
